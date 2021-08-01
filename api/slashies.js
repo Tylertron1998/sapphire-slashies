@@ -43371,7 +43371,6 @@ var _a;
 
 
 
-
 (0,main.config)({
     path: process.env.NODE_ENV === 'production' ? (0,external_path_.join)(__dirname, '.env') : (0,external_path_.join)(__dirname, '..', '.env')
 });
@@ -43380,7 +43379,7 @@ var _a;
     if (interactionInvalid) {
         return res //
             .status(interactionInvalid.statusCode)
-            .json(errorResponse({ content: interactionInvalid.message }));
+            .json({ message: interactionInvalid.message });
     }
     const json = cast(req.body);
     if (json.type === 1 /* Ping */)
