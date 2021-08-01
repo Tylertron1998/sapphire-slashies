@@ -43339,8 +43339,8 @@ function verifyDiscordInteraction(req) {
     const timestampHeader = headers['x-signature-timestamp'];
     if (!signatureHeader || !timestampHeader) {
         return {
-            statusCode: 400 /* BadRequest */,
-            message: 'are you actually Discord sending me a request, or is Discord trolling me by sending Bad Requests?'
+            statusCode: 401 /* Unauthorized */,
+            message: 'Are you actually Discord sending me a request, or is Discord trolling me by sending Bad Requests?'
         };
     }
     const body = timestampHeader + JSON.stringify(req.body);
@@ -43349,7 +43349,7 @@ function verifyDiscordInteraction(req) {
     if (!isVerified) {
         return {
             statusCode: 401 /* Unauthorized */,
-            message: "you're very much unauthorized you naughty naughty thing."
+            message: "You're very much unauthorized you naughty, naughty thing."
         };
     }
     return null;
