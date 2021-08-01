@@ -41537,6 +41537,8 @@ __nccwpck_require__.d(__webpack_exports__, {
   "default": () => (/* binding */ src)
 });
 
+// EXTERNAL MODULE: ./node_modules/dotenv-cra/build/main.js
+var main = __nccwpck_require__(2170);
 // EXTERNAL MODULE: ./node_modules/discord-api-types/v9.js
 var v9 = __nccwpck_require__(9787);
 ;// CONCATENATED MODULE: ./node_modules/discord-api-types/v9.mjs
@@ -41603,8 +41605,6 @@ const Utils = v9.Utils;
 const VideoQualityMode = v9.VideoQualityMode;
 const WebhookType = v9.WebhookType;
 
-// EXTERNAL MODULE: ./node_modules/dotenv-cra/build/main.js
-var main = __nccwpck_require__(2170);
 // EXTERNAL MODULE: external "path"
 var external_path_ = __nccwpck_require__(5622);
 // EXTERNAL MODULE: ./node_modules/@discordjs/builders/dist/index.js
@@ -43359,21 +43359,21 @@ function verifyDiscordInteraction(req) {
 var _a;
 (_a = process.env).NODE_ENV ?? (_a.NODE_ENV = 'development');
 
-
-
-
-
-
-
-
-
-
-
-
-
 (0,main.config)({
     path: process.env.NODE_ENV === 'production' ? (0,external_path_.join)(__dirname, '.env') : (0,external_path_.join)(__dirname, '..', '.env')
 });
+
+
+
+
+
+
+
+
+
+
+
+
 /* harmony default export */ const src = ((req, res) => {
     const interactionInvalid = verifyDiscordInteraction(req);
     if (interactionInvalid) {
