@@ -43375,6 +43375,7 @@ var _a;
 
 
 /* harmony default export */ const src = ((req, res) => {
+    console.error(req);
     const interactionInvalid = verifyDiscordInteraction(req);
     if (interactionInvalid) {
         return res //
