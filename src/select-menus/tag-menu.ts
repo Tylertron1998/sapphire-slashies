@@ -1,8 +1,8 @@
 import { fetch, FetchMethods } from '@sapphire/fetch';
-import type { VercelResponse } from '@vercel/node';
 import { InteractionResponseType, RouteBases, Routes, Snowflake } from 'discord-api-types/v9';
+import type { FastifyResponse } from '../lib/types/Api';
 import { DiscordApplicationId } from '../lib/util/env';
-import { interactionResponse } from '../lib/util/responseHelpers';
+import { interactionResponse, sendJson } from '../lib/util/responseHelpers';
 import { findTag } from '../lib/util/tags';
 
 export async function handleTagSelectMenu({
@@ -10,9 +10,10 @@ export async function handleTagSelectMenu({
 	selectedValue,
 	target,
 	token
-}: HandleTagSelectMenuParameters): Promise<[PromiseSettledResult<VercelResponse>, PromiseSettledResult<unknown>]> {
+}: HandleTagSelectMenuParameters): Promise<[PromiseSettledResult<FastifyResponse>, PromiseSettledResult<unknown>]> {
 	return Promise.allSettled([
-		response.json(
+		sendJson(
+			response,
 			interactionResponse({
 				content: 'Suggestion sent',
 				type: InteractionResponseType.UpdateMessage,
@@ -35,7 +36,7 @@ export async function handleTagSelectMenu({
 }
 
 interface HandleTagSelectMenuParameters {
-	response: VercelResponse;
+	response: FastifyResponse;
 	token: string;
 	selectedValue: string;
 	target?: Snowflake;

@@ -1,0 +1,15 @@
+version: '2.4'
+
+services:
+  slashies:
+    image: sapphire/slashies:latest
+    container_name: slashies
+    restart: unless-stopped
+    tty: true
+    build: ./
+    environment:
+      PORT: 9009
+    env_file:
+      - '.env.local'
+    ports:
+      - '9009:9009'

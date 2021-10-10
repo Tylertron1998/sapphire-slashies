@@ -1,6 +1,5 @@
 process.env.NODE_ENV ??= 'development';
 
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import {
 	APIChatInputApplicationCommandInteraction,
 	APIInteraction,
@@ -13,6 +12,7 @@ import {
 	Snowflake
 } from 'discord-api-types/v9';
 import { config } from 'dotenv-cra';
+import Fastify from 'fastify';
 import { join } from 'path';
 import { djsDocs } from './commands/djsDocs';
 import { djsGuide } from './commands/djsGuide';
@@ -24,9 +24,10 @@ import { ping } from './commands/ping';
 import { searchTag } from './commands/searchTag';
 import { slashiesEta } from './commands/slashiesEta';
 import { showTag } from './commands/tags';
+import { HttpCodes } from './lib/api/HttpCodes';
 import { verifyDiscordInteraction } from './lib/api/verifyDiscordInteraction';
 import { cast, FailPrefix } from './lib/constants/constants';
-import { errorResponse } from './lib/util/responseHelpers';
+import { errorResponse, sendJson } from './lib/util/responseHelpers';
 import { loadTags } from './lib/util/tags';
 import { handleTagSelectMenu } from './select-menus/tag-menu';
 
@@ -34,7 +35,14 @@ config({
 	path: process.env.NODE_ENV === 'production' ? join(__dirname, '.env') : join(__dirname, '..', '.env')
 });
 
-export default async (req: VercelRequest, res: VercelResponse): Promise<VercelResponse> => {
+const fastify = Fastify({ logger: true });
+
+// eslint-disable-next-line @typescript-eslint/require-await
+fastify.get('/', async (_, res) => {
+	return res.status(HttpCodes.BadRequest).send({ message: 'This API only supports POST requests' });
+});
+
+fastify.post('/', async (req, res) => {
 	// Load up the tags into the cache
 	await loadTags();
 
@@ -42,13 +50,13 @@ export default async (req: VercelRequest, res: VercelResponse): Promise<VercelRe
 	if (interactionInvalid) {
 		return res //
 			.status(interactionInvalid.statusCode)
-			.json({ message: interactionInvalid.message });
+			.send({ message: interactionInvalid.message });
 	}
 
 	try {
 		const json = cast<APIInteraction>(req.body);
 
-		if (json.type === InteractionType.Ping) return res.json({ type: InteractionResponseType.Pong });
+		if (json.type === InteractionType.Ping) return res.send({ type: InteractionResponseType.Pong });
 
 		if (json.type === InteractionType.ApplicationCommand) {
 			const {
@@ -120,9 +128,9 @@ export default async (req: VercelRequest, res: VercelResponse): Promise<VercelRe
 
 			switch (name as RegisteredSlashies) {
 				case 'ping':
-					return res.json(ping(id));
+					return res.send(ping(id));
 				case 'invite':
-					return res.json(invite());
+					return res.send(invite());
 				case 'slashies-eta':
 					return slashiesEta({
 						response: res
@@ -143,16 +151,28 @@ export default async (req: VercelRequest, res: VercelResponse): Promise<VercelRe
 			}
 		}
 
-		return res.json(
+		return sendJson(
+			res,
 			errorResponse({
 				content: `${FailPrefix} how did you get here? What magic data are you sending that your interaction type is not being recognised?`
 			})
 		);
 	} catch (error) {
-		return res.json(errorResponse({ content: `${FailPrefix} it looks like something went wrong here, please try again later!` }));
+		return sendJson(res, errorResponse({ content: `${FailPrefix} it looks like something went wrong here, please try again later!` }));
+	}
+});
+
+const start = async () => {
+	try {
+		await fastify.listen(process.env.PORT || 3000, '0.0.0.0');
+	} catch (err) {
+		fastify.log.error(err);
+		process.exit(1);
 	}
 };
 
 type RegisteredSlashiesWithOptions = 'djs-guide' | 'djs' | 'mdn' | 'node' | 'github' | 'tag' | 'tagsearch';
 type RegisteredSlashies = 'ping' | 'invite' | 'slashies-eta';
 type SelectMenuOpCodes = 'tag';
+
+void start();

@@ -1,9 +1,9 @@
 import { bold, hideLinkEmbed, hyperlink, italic, underscore, userMention } from '@discordjs/builders';
-import type { VercelResponse } from '@vercel/node';
 import type { Snowflake } from 'discord-api-types/v9';
 import Doc from 'discord.js-docs';
 import { DjsDocsDevIcon, DjsDocsStableIcon } from '../lib/constants/emotes';
-import { errorResponse, interactionResponse } from '../lib/util/responseHelpers';
+import type { FastifyResponse } from '../lib/types/Api';
+import { errorResponse, interactionResponse, sendJson } from '../lib/util/responseHelpers';
 
 function escapeMDLinks(s = ''): string {
 	return s.replace(/\[(.+?)\]\((.+?)\)/g, '[$1](<$2>)');
@@ -35,13 +35,14 @@ function resolveResultString(results: DocElement[]): string {
 	return res.join('\n');
 }
 
-export async function djsDocs({ query, response, source, target }: DjsDocsParameters): Promise<VercelResponse> {
+export async function djsDocs({ query, response, source, target }: DjsDocsParameters): Promise<FastifyResponse> {
 	const doc = await Doc.fetch(source, { force: true });
 	const element = doc.get(...query.split(/[.#]/));
 	const icon = source === 'master' ? DjsDocsDevIcon : DjsDocsStableIcon;
 
 	if (element) {
-		return response.json(
+		return sendJson(
+			response,
 			interactionResponse({
 				content: `${target ? `${italic(`Documentation suggestion for ${userMention(target)}:`)}\n` : ''}${icon} ${resolveElementString(
 					element,
@@ -54,7 +55,8 @@ export async function djsDocs({ query, response, source, target }: DjsDocsParame
 
 	const results = doc.search(query);
 	if (results?.length) {
-		return response.json(
+		return sendJson(
+			response,
 			interactionResponse({
 				content: resolveResultString(results),
 				ephemeral: true
@@ -62,7 +64,8 @@ export async function djsDocs({ query, response, source, target }: DjsDocsParame
 		);
 	}
 
-	return response.json(
+	return sendJson(
+		response,
 		errorResponse({
 			content: 'I was unable to find anything with the provided parameters.'
 		})
@@ -70,7 +73,7 @@ export async function djsDocs({ query, response, source, target }: DjsDocsParame
 }
 
 interface DjsDocsParameters {
-	response: VercelResponse;
+	response: FastifyResponse;
 	source: string;
 	query: string;
 	target: Snowflake;
